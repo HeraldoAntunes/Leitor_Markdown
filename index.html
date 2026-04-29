@@ -1,0 +1,1695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leitor Markdown Didático</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-soft: #f7f8fa;
+      --text: #1d2430;
+      --muted: #5c6675;
+      --border: #d8dde6;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --formula-bg: #f1f3f5;
+      --formula-border: #64748b;
+      --code-bg: #f3f4f6;
+      --shadow: 0 10px 30px rgba(31, 41, 55, 0.08);
+      --toolbar-height: 64px;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #15171b;
+      --surface: #20242b;
+      --surface-soft: #2b3038;
+      --text: #e9edf3;
+      --muted: #b6c0cf;
+      --border: #3b4350;
+      --accent: #8bb2ff;
+      --accent-dark: #a8c5ff;
+      --formula-bg: #262c35;
+      --formula-border: #8da2c0;
+      --code-bg: #161a20;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    button,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      padding: 0.48rem 0.68rem;
+      transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+      white-space: nowrap;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      outline: none;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    button.primary:hover,
+    button.primary:focus-visible {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+      color: #ffffff;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: var(--toolbar-height);
+      padding: 0.65rem 1rem;
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 8px rgba(31, 41, 55, 0.05);
+      backdrop-filter: blur(8px);
+    }
+
+    .toolbar-spacer {
+      flex: 1 1 auto;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .status-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      background: var(--surface-soft);
+    }
+
+    .math-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 0.88rem;
+      user-select: none;
+    }
+
+    .math-toggle input {
+      accent-color: var(--accent);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+      gap: 1rem;
+      width: 100%;
+      min-height: calc(100vh - var(--toolbar-height));
+      padding: 1rem;
+    }
+
+    .editor-pane,
+    .preview-pane {
+      min-width: 0;
+    }
+
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - var(--toolbar-height) - 2rem);
+    }
+
+    #markdownInput {
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 60vh;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      line-height: 1.55;
+      tab-size: 2;
+    }
+
+    #markdownInput:focus {
+      border-color: var(--accent);
+      outline: 3px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .preview-pane {
+      overflow-x: auto;
+    }
+
+    .markdown-body {
+      width: min(100%, 900px);
+      margin: 0 auto;
+      padding: 2.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      color: var(--text);
+      overflow-wrap: break-word;
+    }
+
+    .markdown-body > :first-child {
+      margin-top: 0;
+    }
+
+    .markdown-body > :last-child {
+      margin-bottom: 0;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      line-height: 1.22;
+      margin: 1.4em 0 0.55em;
+      color: var(--text);
+    }
+
+    .markdown-body h1 {
+      padding-bottom: 0.35rem;
+      border-bottom: 2px solid var(--border);
+      font-size: 2.05rem;
+    }
+
+    .markdown-body h2 {
+      padding-bottom: 0.22rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.48rem;
+    }
+
+    .markdown-body h3 {
+      font-size: 1.2rem;
+    }
+
+    .markdown-body h4 {
+      font-size: 1.05rem;
+      color: var(--muted);
+    }
+
+    .markdown-body p,
+    .markdown-body ul,
+    .markdown-body ol,
+    .markdown-body blockquote,
+    .markdown-body table,
+    .markdown-body pre,
+    .markdown-body .formula-block {
+      margin: 0.85rem 0;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 1.45rem;
+    }
+
+    .markdown-body li + li {
+      margin-top: 0.25rem;
+    }
+
+    .markdown-body a {
+      color: var(--accent);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.16em;
+    }
+
+    .markdown-body hr {
+      height: 1px;
+      margin: 1.6rem 0;
+      border: 0;
+      background: var(--border);
+    }
+
+    .markdown-body blockquote {
+      border-left: 4px solid var(--accent);
+      margin-left: 0;
+      padding: 0.15rem 0 0.15rem 1rem;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--surface-soft) 72%, transparent);
+    }
+
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border);
+      padding: 0.52rem 0.62rem;
+      vertical-align: top;
+    }
+
+    .markdown-body th {
+      background: var(--surface-soft);
+      font-weight: 700;
+    }
+
+    .markdown-body tr:nth-child(even) td {
+      background: color-mix(in srgb, var(--surface-soft) 42%, transparent);
+    }
+
+    .markdown-body code {
+      border-radius: 4px;
+      background: var(--code-bg);
+      padding: 0.12rem 0.28rem;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    .code-block {
+      margin: 0.95rem 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .code-label {
+      padding: 0.38rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+      background: color-mix(in srgb, var(--surface-soft) 72%, transparent);
+    }
+
+    .markdown-body pre {
+      margin: 0;
+      overflow-x: auto;
+      padding: 0.9rem;
+      background: var(--code-bg);
+    }
+
+    .markdown-body pre.code-block {
+      margin: 0.95rem 0;
+      white-space: pre;
+    }
+
+    .markdown-body pre code {
+      display: block;
+      min-width: max-content;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      white-space: pre;
+    }
+
+    .formula-block {
+      display: block;
+      margin: 1rem auto;
+      border-left: 4px solid var(--formula-border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      background: var(--formula-bg);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.15rem;
+      line-height: 1.65;
+      text-align: center;
+      overflow-x: auto;
+      white-space: nowrap;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .formula-block span {
+      white-space: nowrap;
+    }
+
+    .formula-inline {
+      display: inline-block;
+      padding: 0.05rem 0.25rem;
+      border-radius: 4px;
+      background: var(--surface-soft);
+      font-family: Georgia, "Times New Roman", serif;
+      white-space: nowrap;
+    }
+
+    .app-shell.preview-only {
+      display: block;
+    }
+
+    .app-shell.preview-only .editor-pane,
+    .app-shell.editor-only .preview-pane {
+      display: none;
+    }
+
+    .app-shell.editor-only {
+      display: block;
+    }
+
+    .app-shell.editor-only .editor-pane {
+      width: min(100%, 900px);
+      min-height: calc(100vh - var(--toolbar-height) - 2rem);
+      margin: 0 auto;
+    }
+
+    .app-shell.preview-only .preview-pane {
+      display: block;
+    }
+
+    .floating-exit {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 30;
+      display: none;
+      box-shadow: var(--shadow);
+    }
+
+    body.presentation-mode {
+      background: #ffffff;
+      color: #111827;
+    }
+
+    body.presentation-mode .toolbar,
+    body.presentation-mode .editor-pane {
+      display: none;
+    }
+
+    body.presentation-mode .app-shell {
+      display: block;
+      min-height: 100vh;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    body.presentation-mode .preview-pane {
+      display: block;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    body.presentation-mode .markdown-body {
+      width: min(100%, 900px);
+      min-height: 100vh;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      background: #ffffff;
+      color: #111827;
+      padding: 3rem 2.5rem;
+    }
+
+    body.presentation-mode .floating-exit {
+      display: inline-flex;
+    }
+
+    @media (max-width: 960px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .status-group {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .toolbar {
+        padding: 0.55rem;
+      }
+
+      button {
+        padding: 0.45rem 0.52rem;
+        font-size: 0.92rem;
+      }
+
+      .app-shell {
+        padding: 0.6rem;
+      }
+
+      .markdown-body {
+        padding: 1.25rem;
+      }
+
+      body.presentation-mode .markdown-body {
+        padding: 2rem 1.25rem;
+      }
+    }
+
+    @page {
+      margin: 18mm 16mm;
+    }
+
+    @media print {
+      * {
+        box-shadow: none !important;
+      }
+
+      html,
+      body {
+        width: auto;
+        min-height: auto;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      .toolbar,
+      .editor-pane,
+      .floating-exit {
+        display: none !important;
+      }
+
+      .app-shell,
+      .app-shell.preview-only,
+      .app-shell.editor-only {
+        display: block !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
+
+      .preview-pane {
+        display: block !important;
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+
+      .markdown-body {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt;
+      }
+
+      .markdown-body h1,
+      .markdown-body h2,
+      .markdown-body h3,
+      .markdown-body h4 {
+        color: #000000 !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .markdown-body table,
+      .markdown-body pre,
+      .markdown-body blockquote,
+      .markdown-body .formula-block,
+      .code-block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      pre {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        white-space: pre-wrap !important;
+      }
+
+      .markdown-body pre code {
+        min-width: 0 !important;
+        white-space: pre-wrap !important;
+      }
+
+      .markdown-body tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .formula-block,
+      .markdown-body th,
+      .markdown-body td,
+      .markdown-body code,
+      .code-block,
+      .markdown-body pre {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="toolbar" id="toolbar">
+    <button type="button" id="viewButton" class="primary" title="Mostrar apenas a visualização">Visualizar</button>
+    <button type="button" id="editButton" title="Mostrar apenas o editor">Editar</button>
+    <button type="button" id="presentationButton" title="Entrar no modo aula">Tela cheia / modo aula</button>
+    <button type="button" id="previewOnlyButton" title="Ocultar o editor">Mostrar somente visualização</button>
+    <button type="button" id="splitButton" title="Mostrar editor e visualização">Editor e visualização lado a lado</button>
+    <button type="button" id="printButton" title="Imprimir ou salvar como PDF">Imprimir / Salvar em PDF</button>
+    <button type="button" id="clearButton" title="Limpar o texto atual">Limpar</button>
+    <button type="button" id="copyHtmlButton" title="Copiar HTML renderizado">Copiar HTML renderizado</button>
+    <button type="button" id="downloadHtmlButton" title="Baixar visualização como HTML">Baixar HTML renderizado</button>
+    <button type="button" id="downloadMdButton" title="Baixar o Markdown atual">Baixar Markdown</button>
+    <button type="button" id="loadFileButton" title="Carregar arquivo .md local">Carregar arquivo .md local</button>
+    <input type="file" id="fileInput" class="file-input" accept=".md,.markdown,text/markdown,text/plain">
+    <button type="button" id="themeButton" title="Alternar tema claro ou escuro">Alternar tema claro/escuro</button>
+    <button type="button" id="restoreButton" title="Restaurar o exemplo inicial">Restaurar exemplo inicial</button>
+    <label class="math-toggle" title="Tentar carregar MathJax pela internet">
+      <input type="checkbox" id="mathJaxToggle">
+      Usar MathJax online
+    </label>
+    <div class="toolbar-spacer"></div>
+    <div class="status-group" aria-live="polite">
+      <span class="status-pill" id="formulaStatus">Modo offline de fórmulas ativo</span>
+      <span class="status-pill" id="counterStatus">0 caracteres · 0 palavras</span>
+      <span class="status-pill" id="messageStatus">Pronto</span>
+    </div>
+  </header>
+
+  <main class="app-shell split" id="appShell">
+    <section class="editor-pane" aria-label="Editor Markdown">
+      <textarea id="markdownInput" spellcheck="false" aria-label="Cole ou edite seu texto em Markdown"></textarea>
+    </section>
+    <section class="preview-pane" aria-label="Visualização renderizada">
+      <article class="markdown-body" id="preview"></article>
+    </section>
+  </main>
+
+  <button type="button" class="floating-exit" id="exitPresentationButton">Sair do modo aula</button>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "leitorMarkdownDidatico.conteudo";
+    const THEME_KEY = "leitorMarkdownDidatico.tema";
+    const CODE_TOKEN_PREFIX = "%%CODE_BLOCK_";
+    const FORMULA_TOKEN_PREFIX = "%%FORMULA_BLOCK_";
+    const TOKEN_SUFFIX = "%%";
+
+    const EXAMPLE_MARKDOWN = `# Aula de Estatística Aplicada
+
+## Fórmulas principais
+
+A amplitude amostral é:
+
+$$
+A = x_{\\max} - x_{\\min}
+$$
+
+O número de classes pode ser estimado por:
+
+$$
+K = \\sqrt{n}
+$$
+
+Ou pela regra de Sturges:
+
+$$
+K = 1 + 3{,}322 \\cdot \\log_{10}(n)
+$$
+
+A amplitude da classe é:
+
+$$
+h = \\frac{A}{K}
+$$
+
+O ponto médio da classe é:
+
+$$
+x_i = \\frac{L_i + L_s}{2}
+$$
+
+## Exemplo de classes
+
+| Classe | Limite inferior | Limite superior | Intervalo |
+|---:|---:|---:|---|
+| 1 | 650 | 730 | [650, 730) |
+| 2 | 730 | 810 | [730, 810) |
+| 3 | 810 | 890 | [810, 890) |
+
+O intervalo:
+
+$$
+[650, 730)
+$$
+
+significa:
+
+$$
+650 \\leq x < 730
+$$
+
+## Verificadores
+
+- A soma de fᵢ deve ser igual a n.
+- A última frequência acumulada Fᵢ deve ser igual a n.
+- A soma de f% deve ser igual a 100%.
+
+## Histograma
+
+Um histograma pode ser construído usando as classes no eixo horizontal e as frequências no eixo vertical.
+
+\`\`\`text
+Classes:      [650, 730)  [730, 810)  [810, 890)
+Frequências:       5           8           4
+\`\`\``;
+
+    const state = {
+      mode: "split",
+      previousMode: "split",
+      useMathJax: false,
+      mathJaxReady: false,
+      mathJaxLoading: false,
+      debounceTimer: null,
+      messageTimer: null
+    };
+
+    const editor = document.getElementById("markdownInput");
+    const preview = document.getElementById("preview");
+    const appShell = document.getElementById("appShell");
+    const counterStatus = document.getElementById("counterStatus");
+    const formulaStatus = document.getElementById("formulaStatus");
+    const messageStatus = document.getElementById("messageStatus");
+    const fileInput = document.getElementById("fileInput");
+    const mathJaxToggle = document.getElementById("mathJaxToggle");
+
+    // Escapa caracteres perigosos antes de qualquer conteúdo do usuário virar HTML.
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function createPlaceholder(prefix, index) {
+      return prefix + index + TOKEN_SUFFIX;
+    }
+
+    function getPlaceholderIndex(line, prefix) {
+      if (!line.startsWith(prefix) || !line.endsWith(TOKEN_SUFFIX)) {
+        return -1;
+      }
+      const rawIndex = line.slice(prefix.length, -TOKEN_SUFFIX.length);
+      return /^\d+$/.test(rawIndex) ? Number(rawIndex) : -1;
+    }
+
+    function normalizeMarkdown(markdown) {
+      return String(markdown || "").replace(/\r\n?/g, "\n");
+    }
+
+    // Protege blocos de código com ``` ou ~~~ antes de qualquer parser Markdown/fórmula.
+    function extractCodeBlocks(markdown) {
+      const lines = normalizeMarkdown(markdown).split("\n");
+      const output = [];
+      const codeBlocks = [];
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const trimmed = lines[i].trim();
+        const fenceMatch = trimmed.match(/^(```|~~~)\s*([A-Za-z0-9_#+.-]*)/);
+
+        if (fenceMatch) {
+          const fence = fenceMatch[1];
+          const language = (fenceMatch[2] || "").replace(/[^\w#+.-]/g, "");
+          const codeLines = [];
+          i += 1;
+
+          while (i < lines.length && !lines[i].trim().startsWith(fence)) {
+            codeLines.push(lines[i]);
+            i += 1;
+          }
+
+          const html = renderCodeBlock(codeLines.join("\n"), language);
+          codeBlocks.push(html);
+          output.push(createPlaceholder(CODE_TOKEN_PREFIX, codeBlocks.length - 1));
+        } else {
+          output.push(lines[i]);
+        }
+      }
+
+      return {
+        text: output.join("\n"),
+        codeBlocks
+      };
+    }
+
+    function renderCodeBlock(code, language) {
+      const classAttr = language ? ` class="language-${escapeHtml(language)}"` : "";
+      return `<pre class="code-block"><code${classAttr}>${escapeHtml(code)}</code></pre>`;
+    }
+
+    // Extrai fórmulas em bloco antes dos parágrafos e tabelas.
+    function extractAndRenderFormulas(markdown) {
+      const lines = normalizeMarkdown(markdown).split("\n");
+      const output = [];
+      const formulas = [];
+
+      function storeFormula(rawFormula) {
+        formulas.push(renderFormulaBlock(rawFormula));
+        output.push(createPlaceholder(FORMULA_TOKEN_PREFIX, formulas.length - 1));
+      }
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith("$$") && trimmed.endsWith("$$") && trimmed.length > 4) {
+          storeFormula(trimmed.slice(2, -2).trim());
+          continue;
+        }
+
+        if (trimmed === "$$") {
+          const formulaLines = [];
+          i += 1;
+
+          while (i < lines.length && lines[i].trim() !== "$$") {
+            formulaLines.push(lines[i]);
+            i += 1;
+          }
+
+          storeFormula(formulaLines.join("\n"));
+          continue;
+        }
+
+        if (/^\\\[(.*)\\\]$/.test(trimmed) && trimmed.length > 4) {
+          storeFormula(trimmed.replace(/^\\\[/, "").replace(/\\\]$/, "").trim());
+          continue;
+        }
+
+        if (trimmed === "\\[") {
+          const formulaLines = [];
+          i += 1;
+
+          while (i < lines.length && lines[i].trim() !== "\\]") {
+            formulaLines.push(lines[i]);
+            i += 1;
+          }
+
+          storeFormula(formulaLines.join("\n"));
+          continue;
+        }
+
+        if (/^:::formula\s*$/i.test(trimmed)) {
+          const formulaLines = [];
+          i += 1;
+
+          while (i < lines.length && lines[i].trim() !== ":::") {
+            formulaLines.push(lines[i]);
+            i += 1;
+          }
+
+          storeFormula(formulaLines.join("\n"));
+          continue;
+        }
+
+        if (/^f[oó]rmula\s*:/i.test(trimmed)) {
+          storeFormula(trimmed.replace(/^f[oó]rmula\s*:/i, "").trim());
+          continue;
+        }
+
+        output.push(line);
+      }
+
+      return {
+        text: output.join("\n"),
+        formulas
+      };
+    }
+
+    function renderFormulaBlock(formulaText) {
+      const formula = String(formulaText || "").trim();
+      if (!formula) {
+        return "";
+      }
+
+      if (state.useMathJax && state.mathJaxReady) {
+        return `<div class="formula-block mathjax-formula">$$\n${escapeHtml(formula)}\n$$</div>`;
+      }
+
+      return renderFormulaOffline(formula);
+    }
+
+    function renderFormulaOffline(formulaText) {
+      const converted = converterFormulaParaUnicode(formulaText);
+      return `<div class="formula-block"><span>${escapeHtml(converted)}</span></div>`;
+    }
+
+    function renderFormulaInline(formulaText, openingDelimiter, closingDelimiter) {
+      const formula = String(formulaText || "").trim();
+      if (!formula) {
+        return "";
+      }
+
+      if (state.useMathJax && state.mathJaxReady) {
+        return `<span class="formula-inline mathjax-formula">${escapeHtml(openingDelimiter + formula + closingDelimiter)}</span>`;
+      }
+
+      return `<span class="formula-inline">${escapeHtml(converterFormulaParaUnicode(formula))}</span>`;
+    }
+
+    function isSimpleFormulaPart(value) {
+      return /^[A-Za-z0-9.,%√Σ₀₁₂₃₄₅₆₇₈₉ᵢⁿ²³ᵃᵇᶜᵈᵉᶠᵍʰʲᵏˡᵐᵒᵖʳˢᵗᵘᵛʷˣʸᶻₛₙₘáíx]+$/u.test(value.trim());
+    }
+
+    function parenthesizeIfNeeded(value) {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return "";
+      }
+      return isSimpleFormulaPart(trimmed) ? trimmed : `(${trimmed})`;
+    }
+
+    function toSubscript(token) {
+      const cleaned = String(token || "").replace(/^\\/, "");
+      if (cleaned === "min") return "ₘín";
+      if (cleaned === "max") return "ₘáx";
+
+      const map = {
+        "0": "₀",
+        "1": "₁",
+        "2": "₂",
+        "3": "₃",
+        "4": "₄",
+        "5": "₅",
+        "6": "₆",
+        "7": "₇",
+        "8": "₈",
+        "9": "₉",
+        i: "ᵢ",
+        s: "ₛ",
+        n: "ₙ",
+        m: "ₘ"
+      };
+
+      return cleaned.split("").map((char) => map[char] || char).join("");
+    }
+
+    function toSuperscript(token) {
+      const cleaned = String(token || "");
+      const map = {
+        "0": "⁰",
+        "1": "¹",
+        "2": "²",
+        "3": "³",
+        "4": "⁴",
+        "5": "⁵",
+        "6": "⁶",
+        "7": "⁷",
+        "8": "⁸",
+        "9": "⁹",
+        n: "ⁿ",
+        i: "ⁱ",
+        x: "ˣ"
+      };
+
+      return cleaned.split("").map((char) => map[char] || char).join("");
+    }
+
+    function applyFormulaReplacements(text) {
+      return text
+        .replace(/\\left\s*/g, "")
+        .replace(/\\right\s*/g, "")
+        .replace(/\\text\s*\{([^{}]*)\}/g, "$1")
+        .replace(/\{,\}/g, ",")
+        .replace(/\\%/g, "%")
+        .replace(/\\sqrt\s*\{([^{}]+)\}/g, (_, value) => `√${converterFormulaParaUnicode(value)}`)
+        .replace(/\\log\s*_\s*\{10\}/g, "log₁₀")
+        .replace(/\\log\s*_\s*10/g, "log₁₀")
+        .replace(/\\log\s*_\s*\{2\}/g, "log₂")
+        .replace(/\\log\s*_\s*2/g, "log₂")
+        .replace(/\blog10\s*\(/g, "log₁₀(")
+        .replace(/\blog2\s*\(/g, "log₂(")
+        .replace(/\\cdots/g, "...")
+        .replace(/\\cdot/g, "·")
+        .replace(/⋅/g, "·")
+        .replace(/\\times/g, "×")
+        .replace(/\\div/g, "÷")
+        .replace(/\\leq?/g, "≤")
+        .replace(/\\geq?/g, "≥")
+        .replace(/\\neq/g, "≠")
+        .replace(/\\approx/g, "≈")
+        .replace(/\\Rightarrow/g, "⇒")
+        .replace(/\\rightarrow/g, "→")
+        .replace(/\\leftarrow/g, "←")
+        .replace(/\\sum/g, "Σ");
+    }
+
+    function applySubscriptsAndSuperscripts(text) {
+      return text
+        .replace(/_\{([^{}]+)\}/g, (_, token) => toSubscript(token))
+        .replace(/_([A-Za-z0-9]+)/g, (_, token) => toSubscript(token))
+        .replace(/\^\{([^{}]+)\}/g, (_, token) => toSuperscript(token))
+        .replace(/\^([A-Za-z0-9])/g, (_, token) => toSuperscript(token));
+    }
+
+    // Conversor didático para fórmulas simples de Estatística em modo offline.
+    function converterFormulaParaUnicode(texto) {
+      let output = normalizeMarkdown(texto)
+        .replace(/^\s*\$\$?/g, "")
+        .replace(/\$\$?\s*$/g, "")
+        .replace(/^\\\(/g, "")
+        .replace(/\\\)$/g, "")
+        .replace(/^\\\[/g, "")
+        .replace(/\\\]$/g, "")
+        .trim();
+
+      output = output
+        .replace(/\\\\([A-Za-z]+)/g, "\\$1")
+        .replace(/\\\\/g, " ");
+
+      let previous = "";
+      while (previous !== output && /\\frac\s*\{[^{}]*\}\s*\{[^{}]*\}/.test(output)) {
+        previous = output;
+        output = output.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, (_, numerator, denominator) => {
+          const top = converterFormulaParaUnicode(numerator);
+          const bottom = converterFormulaParaUnicode(denominator);
+          return `${parenthesizeIfNeeded(top)} / ${parenthesizeIfNeeded(bottom)}`;
+        });
+      }
+
+      output = applyFormulaReplacements(output);
+      output = applySubscriptsAndSuperscripts(output);
+      output = output
+        .replace(/\s-\s/g, " − ")
+        .replace(/\\\(/g, "")
+        .replace(/\\\)/g, "")
+        .replace(/\\\[/g, "")
+        .replace(/\\\]/g, "")
+        .replace(/\$/g, "")
+        .replace(/[{}]/g, "")
+        .replace(/\\([A-Za-z]+)/g, "$1")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return output;
+    }
+
+    // Testes rápidos disponíveis no console: execute debugFormulaTests().
+    function debugFormulaTests() {
+      const tests = [
+        ["\\frac{A}{K}", "A / K"],
+        ["\\sum f_i = n", "Σ fᵢ = n"],
+        ["x_{\\max} - x_{\\min}", "xₘáx − xₘín"],
+        ["K = 1 + 3{,}322 \\cdot \\log_{10}(n)", "K = 1 + 3,322 · log₁₀(n)"],
+        ["650 \\leq x < 730", "650 ≤ x < 730"]
+      ];
+      const results = tests.map(([input, expected]) => {
+        const output = converterFormulaParaUnicode(input);
+        return {
+          entrada: input,
+          saida: output,
+          esperado: expected,
+          ok: output === expected
+        };
+      });
+
+      console.table(results);
+      return results;
+    }
+
+    window.debugFormulaTests = debugFormulaTests;
+
+    function sanitizeUrl(url) {
+      const trimmed = String(url || "").trim();
+      const compact = trimmed.replace(/[\u0000-\u001F\u007F\s]+/g, "").toLowerCase();
+      if (/^(javascript|data|vbscript):/.test(compact)) {
+        return "";
+      }
+      return trimmed;
+    }
+
+    function parseInlineMarkdown(text) {
+      let working = String(text || "");
+      const codeSpans = [];
+      const formulaSpans = [];
+
+      working = working.replace(/`([^`\n]+)`/g, (_, code) => {
+        codeSpans.push(`<code>${escapeHtml(code)}</code>`);
+        return `\uE010INLINE_CODE_${codeSpans.length - 1}\uE011`;
+      });
+
+      // Fórmulas inline são protegidas antes do Markdown inline para não virarem itálico/link.
+      working = working.replace(/\\\(([\s\S]*?)\\\)/g, (_, formula) => {
+        formulaSpans.push(renderFormulaInline(formula, "\\(", "\\)"));
+        return `\uE020INLINE_FORMULA_${formulaSpans.length - 1}\uE021`;
+      });
+
+      working = working.replace(/(^|[^\\])\$(?!\$)((?:\\.|[^\n$\\])+?)\$/g, (_, prefix, formula) => {
+        formulaSpans.push(renderFormulaInline(formula, "$", "$"));
+        return `${prefix}\uE020INLINE_FORMULA_${formulaSpans.length - 1}\uE021`;
+      });
+
+      let safe = escapeHtml(working);
+
+      safe = safe.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => {
+        const sanitizedHref = sanitizeUrl(href);
+        if (!sanitizedHref) {
+          return label;
+        }
+        return `<a href="${sanitizedHref}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      });
+
+      safe = safe.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+      safe = safe.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+
+      safe = safe.replace(/\uE020INLINE_FORMULA_(\d+)\uE021/g, (_, index) => formulaSpans[Number(index)] || "");
+      return safe.replace(/\uE010INLINE_CODE_(\d+)\uE011/g, (_, index) => codeSpans[Number(index)] || "");
+    }
+
+    function splitTableRow(line) {
+      let trimmed = line.trim();
+      if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+      if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+      return trimmed.split("|").map((cell) => cell.trim());
+    }
+
+    function isTableSeparator(line) {
+      const cells = splitTableRow(line);
+      return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell.replace(/\s+/g, "")));
+    }
+
+    function getTableAlignments(separatorLine) {
+      return splitTableRow(separatorLine).map((cell) => {
+        const value = cell.replace(/\s+/g, "");
+        if (value.startsWith(":") && value.endsWith(":")) return "center";
+        if (value.endsWith(":")) return "right";
+        return "left";
+      });
+    }
+
+    function isPotentialTableStart(lines, index) {
+      return Boolean(
+        lines[index] &&
+        lines[index].includes("|") &&
+        lines[index + 1] &&
+        isTableSeparator(lines[index + 1])
+      );
+    }
+
+    function parseTables(lines, startIndex) {
+      if (!isPotentialTableStart(lines, startIndex)) {
+        return null;
+      }
+
+      const header = splitTableRow(lines[startIndex]);
+      const alignments = getTableAlignments(lines[startIndex + 1]);
+      const rows = [];
+      let index = startIndex + 2;
+
+      while (index < lines.length && lines[index].trim() && lines[index].includes("|")) {
+        rows.push(splitTableRow(lines[index]));
+        index += 1;
+      }
+
+      const renderCell = (tag, cell, columnIndex) => {
+        const align = alignments[columnIndex] || "left";
+        return `<${tag} style="text-align:${align}">${parseInlineMarkdown(cell || "")}</${tag}>`;
+      };
+
+      const headerHtml = header.map((cell, columnIndex) => renderCell("th", cell, columnIndex)).join("");
+      const bodyHtml = rows
+        .map((row) => `<tr>${header.map((_, columnIndex) => renderCell("td", row[columnIndex] || "", columnIndex)).join("")}</tr>`)
+        .join("");
+
+      return {
+        html: `<table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`,
+        nextIndex: index
+      };
+    }
+
+    function isBlockStart(lines, index) {
+      const line = lines[index] || "";
+      const trimmed = line.trim();
+      return (
+        getPlaceholderIndex(trimmed, CODE_TOKEN_PREFIX) >= 0 ||
+        getPlaceholderIndex(trimmed, FORMULA_TOKEN_PREFIX) >= 0 ||
+        /^#{1,4}\s+/.test(trimmed) ||
+        /^-{3,}$/.test(trimmed) ||
+        /^>\s?/.test(trimmed) ||
+        /^(\s*)[-*+]\s+/.test(line) ||
+        /^(\s*)\d+\.\s+/.test(line) ||
+        isPotentialTableStart(lines, index)
+      );
+    }
+
+    function parseList(lines, startIndex, ordered) {
+      const items = [];
+      const pattern = ordered ? /^(\s*)\d+\.\s+(.+)/ : /^(\s*)[-*+]\s+(.+)/;
+      let index = startIndex;
+
+      while (index < lines.length && pattern.test(lines[index])) {
+        const match = lines[index].match(pattern);
+        items.push(match ? match[2] : "");
+        index += 1;
+      }
+
+      const tag = ordered ? "ol" : "ul";
+      const html = `<${tag}>${items.map((item) => `<li>${parseInlineMarkdown(item)}</li>`).join("")}</${tag}>`;
+      return { html, nextIndex: index };
+    }
+
+    function parseBlockquote(lines, startIndex) {
+      const quoteLines = [];
+      let index = startIndex;
+
+      while (index < lines.length && /^>\s?/.test(lines[index].trim())) {
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+        index += 1;
+      }
+
+      const html = `<blockquote>${quoteLines.map((line) => parseInlineMarkdown(line)).join("<br>")}</blockquote>`;
+      return { html, nextIndex: index };
+    }
+
+    function parseParagraph(lines, startIndex) {
+      const paragraphLines = [];
+      let index = startIndex;
+
+      while (index < lines.length && lines[index].trim() && !isBlockStart(lines, index)) {
+        paragraphLines.push(lines[index]);
+        index += 1;
+      }
+
+      const html = `<p>${paragraphLines.map((line) => parseInlineMarkdown(line.trim())).join("<br>")}</p>`;
+      return { html, nextIndex: index };
+    }
+
+    function parseMarkdown(markdown) {
+      const protectedCode = extractCodeBlocks(markdown);
+      const protectedFormulas = extractAndRenderFormulas(protectedCode.text);
+      const lines = normalizeMarkdown(protectedFormulas.text).split("\n");
+      const htmlParts = [];
+
+      for (let i = 0; i < lines.length;) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          i += 1;
+          continue;
+        }
+
+        const codeIndex = getPlaceholderIndex(trimmed, CODE_TOKEN_PREFIX);
+        if (codeIndex >= 0) {
+          htmlParts.push(protectedCode.codeBlocks[codeIndex] || "");
+          i += 1;
+          continue;
+        }
+
+        const formulaIndex = getPlaceholderIndex(trimmed, FORMULA_TOKEN_PREFIX);
+        if (formulaIndex >= 0) {
+          htmlParts.push(protectedFormulas.formulas[formulaIndex] || "");
+          i += 1;
+          continue;
+        }
+
+        const table = parseTables(lines, i);
+        if (table) {
+          htmlParts.push(table.html);
+          i = table.nextIndex;
+          continue;
+        }
+
+        if (/^#{1,4}\s+/.test(trimmed)) {
+          const match = trimmed.match(/^(#{1,4})\s+(.+)$/);
+          const level = match[1].length;
+          htmlParts.push(`<h${level}>${parseInlineMarkdown(match[2])}</h${level}>`);
+          i += 1;
+          continue;
+        }
+
+        if (/^-{3,}$/.test(trimmed)) {
+          htmlParts.push("<hr>");
+          i += 1;
+          continue;
+        }
+
+        if (/^>\s?/.test(trimmed)) {
+          const blockquote = parseBlockquote(lines, i);
+          htmlParts.push(blockquote.html);
+          i = blockquote.nextIndex;
+          continue;
+        }
+
+        if (/^(\s*)[-*+]\s+/.test(line)) {
+          const list = parseList(lines, i, false);
+          htmlParts.push(list.html);
+          i = list.nextIndex;
+          continue;
+        }
+
+        if (/^(\s*)\d+\.\s+/.test(line)) {
+          const list = parseList(lines, i, true);
+          htmlParts.push(list.html);
+          i = list.nextIndex;
+          continue;
+        }
+
+        const paragraph = parseParagraph(lines, i);
+        htmlParts.push(paragraph.html);
+        i = paragraph.nextIndex;
+      }
+
+      return htmlParts.join("\n");
+    }
+
+    function updateCounters(text) {
+      const characters = text.length;
+      const trimmed = text.trim();
+      const words = trimmed ? trimmed.split(/\s+/).length : 0;
+      counterStatus.textContent = `${characters} caracteres · ${words} palavras`;
+    }
+
+    function updateFormulaStatus() {
+      if (state.useMathJax && state.mathJaxReady) {
+        formulaStatus.textContent = "MathJax online ativo";
+      } else if (state.useMathJax && state.mathJaxLoading) {
+        formulaStatus.textContent = "Carregando MathJax online";
+      } else {
+        formulaStatus.textContent = "Modo offline de fórmulas ativo";
+      }
+    }
+
+    function setMessage(message) {
+      messageStatus.textContent = message;
+      window.clearTimeout(state.messageTimer);
+      state.messageTimer = window.setTimeout(() => {
+        messageStatus.textContent = "Pronto";
+      }, 3500);
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, editor.value);
+      } catch (error) {
+        setMessage("Não foi possível salvar localmente");
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved !== null ? saved : EXAMPLE_MARKDOWN;
+      } catch (error) {
+        return EXAMPLE_MARKDOWN;
+      }
+    }
+
+    function updatePreview() {
+      const markdown = editor.value;
+      preview.innerHTML = parseMarkdown(markdown);
+      updateCounters(markdown);
+      saveToLocalStorage();
+      updateFormulaStatus();
+
+      if (state.useMathJax && state.mathJaxReady && window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+        if (typeof window.MathJax.typesetClear === "function") {
+          window.MathJax.typesetClear([preview]);
+        }
+        return window.MathJax.typesetPromise([preview]).catch(() => {
+          state.mathJaxReady = false;
+          state.mathJaxLoading = false;
+          state.useMathJax = false;
+          mathJaxToggle.checked = false;
+          setMessage("MathJax falhou; modo offline ativo");
+          return updatePreview();
+        });
+      }
+
+      return Promise.resolve();
+    }
+
+    function debouncedUpdatePreview() {
+      window.clearTimeout(state.debounceTimer);
+      state.debounceTimer = window.setTimeout(updatePreview, 300);
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      appShell.classList.remove("split", "preview-only", "editor-only");
+      appShell.classList.add(mode);
+    }
+
+    function printDocument() {
+      Promise.resolve(updatePreview()).finally(() => window.print());
+    }
+
+    function enterPresentationMode() {
+      state.previousMode = state.mode || "split";
+      setMode("preview-only");
+      document.body.classList.add("presentation-mode");
+
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    }
+
+    function exitPresentationMode() {
+      document.body.classList.remove("presentation-mode");
+      setMode(state.previousMode || "split");
+
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    function downloadBlob(fileName, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadMarkdown() {
+      downloadBlob("material-aula.md", editor.value, "text/markdown;charset=utf-8");
+      setMessage("Markdown baixado");
+    }
+
+    function downloadRenderedHtml() {
+      Promise.resolve(updatePreview()).then(() => {
+        const pageStyles = document.querySelector("style").textContent;
+        const renderedHtml = `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Material renderizado</title>
+  <style>
+${pageStyles}
+    body { background: #ffffff; }
+    .toolbar, .editor-pane, .floating-exit { display: none !important; }
+    .app-shell { display: block; min-height: auto; padding: 0; }
+    .markdown-body { margin: 0 auto; box-shadow: none; }
+  </style>
+</head>
+<body>
+  <main class="app-shell preview-only">
+    <section class="preview-pane">
+      <article class="markdown-body">
+${preview.innerHTML}
+      </article>
+    </section>
+  </main>
+</body>
+</html>`;
+        downloadBlob("material-renderizado.html", renderedHtml, "text/html;charset=utf-8");
+        setMessage("HTML renderizado baixado");
+      });
+    }
+
+    function fallbackCopy(text) {
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.left = "-9999px";
+      document.body.appendChild(temp);
+      temp.select();
+      const ok = document.execCommand("copy");
+      temp.remove();
+      return ok;
+    }
+
+    function copyRenderedHtml() {
+      Promise.resolve(updatePreview()).then(() => {
+        const html = preview.innerHTML;
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          navigator.clipboard.writeText(html)
+            .then(() => setMessage("HTML copiado"))
+            .catch(() => {
+              const ok = fallbackCopy(html);
+              setMessage(ok ? "HTML copiado" : "Não foi possível copiar");
+            });
+          return;
+        }
+
+        const ok = fallbackCopy(html);
+        setMessage(ok ? "HTML copiado" : "Não foi possível copiar");
+      });
+    }
+
+    function loadMarkdownFile(file) {
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        editor.value = String(reader.result || "");
+        saveToLocalStorage();
+        updatePreview();
+        setMode("split");
+        setMessage("Arquivo carregado");
+      };
+      reader.onerror = () => setMessage("Não foi possível carregar o arquivo");
+      reader.readAsText(file, "utf-8");
+    }
+
+    function clearEditor() {
+      const confirmed = window.confirm("Limpar todo o Markdown atual?");
+      if (!confirmed) {
+        return;
+      }
+      editor.value = "";
+      saveToLocalStorage();
+      updatePreview();
+      editor.focus();
+      setMessage("Editor limpo");
+    }
+
+    function restoreExample() {
+      editor.value = EXAMPLE_MARKDOWN;
+      saveToLocalStorage();
+      updatePreview();
+      setMode("split");
+      setMessage("Exemplo restaurado");
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      try {
+        localStorage.setItem(THEME_KEY, document.body.classList.contains("dark") ? "dark" : "light");
+      } catch (error) {
+        setMessage("Tema alterado sem salvar preferência");
+      }
+    }
+
+    function loadTheme() {
+      try {
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        if (savedTheme === "dark") {
+          document.body.classList.add("dark");
+        }
+      } catch (error) {
+        document.body.classList.remove("dark");
+      }
+    }
+
+    function loadMathJaxOnline() {
+      if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+        state.mathJaxReady = true;
+        state.mathJaxLoading = false;
+        updatePreview();
+        return;
+      }
+
+      if (state.mathJaxLoading) {
+        return;
+      }
+
+      state.mathJaxLoading = true;
+      state.mathJaxReady = false;
+      updateFormulaStatus();
+
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"], ["$", "$"]],
+          displayMath: [["\\[", "\\]"], ["$$", "$$"]],
+          processEscapes: true
+        },
+        options: {
+          skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        },
+        startup: {
+          typeset: false
+        }
+      };
+
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js";
+      script.async = true;
+
+      const timeout = window.setTimeout(() => {
+        if (!state.mathJaxReady) {
+          state.mathJaxLoading = false;
+          state.useMathJax = false;
+          mathJaxToggle.checked = false;
+          updatePreview();
+          setMessage("Sem MathJax online; modo offline ativo");
+        }
+      }, 8000);
+
+      script.onload = () => {
+        const ready = window.MathJax && window.MathJax.startup && window.MathJax.startup.promise
+          ? window.MathJax.startup.promise
+          : Promise.resolve();
+
+        ready.then(() => {
+          window.clearTimeout(timeout);
+          if (!state.useMathJax) {
+            state.mathJaxReady = false;
+            state.mathJaxLoading = false;
+            updateFormulaStatus();
+            return;
+          }
+          state.mathJaxReady = true;
+          state.mathJaxLoading = false;
+          updatePreview();
+          setMessage("MathJax online ativo");
+        }).catch(() => {
+          window.clearTimeout(timeout);
+          state.mathJaxReady = false;
+          state.mathJaxLoading = false;
+          state.useMathJax = false;
+          mathJaxToggle.checked = false;
+          updatePreview();
+          setMessage("MathJax falhou; modo offline ativo");
+        });
+      };
+
+      script.onerror = () => {
+        window.clearTimeout(timeout);
+        state.mathJaxReady = false;
+        state.mathJaxLoading = false;
+        state.useMathJax = false;
+        mathJaxToggle.checked = false;
+        updatePreview();
+        setMessage("Sem internet para MathJax; modo offline ativo");
+      };
+
+      document.head.appendChild(script);
+    }
+
+    function bindEvents() {
+      editor.addEventListener("input", debouncedUpdatePreview);
+      document.getElementById("viewButton").addEventListener("click", () => setMode("preview-only"));
+      document.getElementById("previewOnlyButton").addEventListener("click", () => setMode("preview-only"));
+      document.getElementById("splitButton").addEventListener("click", () => setMode("split"));
+      document.getElementById("editButton").addEventListener("click", () => {
+        setMode("editor-only");
+        editor.focus();
+      });
+      document.getElementById("presentationButton").addEventListener("click", enterPresentationMode);
+      document.getElementById("exitPresentationButton").addEventListener("click", exitPresentationMode);
+      document.getElementById("printButton").addEventListener("click", printDocument);
+      document.getElementById("clearButton").addEventListener("click", clearEditor);
+      document.getElementById("copyHtmlButton").addEventListener("click", copyRenderedHtml);
+      document.getElementById("downloadHtmlButton").addEventListener("click", downloadRenderedHtml);
+      document.getElementById("downloadMdButton").addEventListener("click", downloadMarkdown);
+      document.getElementById("loadFileButton").addEventListener("click", () => fileInput.click());
+      document.getElementById("themeButton").addEventListener("click", toggleTheme);
+      document.getElementById("restoreButton").addEventListener("click", restoreExample);
+      fileInput.addEventListener("change", () => {
+        loadMarkdownFile(fileInput.files[0]);
+        fileInput.value = "";
+      });
+      mathJaxToggle.addEventListener("change", () => {
+        state.useMathJax = mathJaxToggle.checked;
+        if (state.useMathJax) {
+          loadMathJaxOnline();
+        } else {
+          state.mathJaxReady = false;
+          state.mathJaxLoading = false;
+          updatePreview();
+          setMessage("Modo offline de fórmulas ativo");
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && document.body.classList.contains("presentation-mode")) {
+          exitPresentationMode();
+        }
+      });
+    }
+
+    function init() {
+      loadTheme();
+      editor.value = loadFromLocalStorage();
+      bindEvents();
+      setMode("split");
+      updatePreview();
+    }
+
+    init();
+  </script>
+</body>
+</html>
