@@ -33,7 +33,7 @@ O leitor inclui um parser simples, suficiente para materiais didáticos:
 
 - Títulos com `#`, `##`, `###` e `####`.
 - Negrito, itálico e código inline.
-- Blocos de código com ``` ou `~~~`.
+- Blocos de código delimitados por três crases ou três tils.
 - Listas ordenadas e não ordenadas.
 - Citações.
 - Linhas horizontais.
@@ -47,12 +47,12 @@ O modo padrão é offline. Fórmulas comuns de Estatística são convertidas par
 
 Exemplos:
 
-```text
-\frac{A}{K}          -> A / K
-\sum f_i = n         -> Σ fᵢ = n
-x_{\max} - x_{\min} -> xₘáx − xₘín
-650 \leq x < 730    -> 650 ≤ x < 730
-```
+| Entrada | Resultado offline |
+|---|---|
+| `\frac{A}{K}` | `A / K` |
+| `\sum f_i = n` | `Σ fᵢ = n` |
+| `x_{\max} - x_{\min}` | `xₘáx − xₘín` |
+| `650 \leq x < 730` | `650 ≤ x < 730` |
 
 Também há uma opção para ativar **MathJax online**. Se a CDN não estiver disponível, o aplicativo volta automaticamente para o modo offline.
 
