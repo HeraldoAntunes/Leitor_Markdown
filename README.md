@@ -66,10 +66,25 @@ Para gerar PDF, use o botão **Imprimir / Salvar em PDF** e escolha a opção de
 
 ```text
 .
+├── AGENTS.md
+├── docs
+│   ├── HANDOFF.md
+│   └── PROJECT_STATE.md
 ├── index.html
 ├── LICENSE
 └── README.md
 ```
+
+## Arquitetura de Contexto
+
+Este repositório tem alguns arquivos para ajudar pessoas e agentes de IA a entenderem o projeto sem misturar funções:
+
+- `README.md`: guia humano do projeto. Explica o que é, como usar e onde ficam os arquivos.
+- `AGENTS.md`: regras permanentes para Codex, OpenCode e outros agentes de IA trabalharem no repositório.
+- `docs/PROJECT_STATE.md`: estado operacional atual do projeto, como decisões em vigor, pendências, limitações e próximos passos.
+- `docs/HANDOFF.md`: resumo técnico para levar o contexto para outro chat, outro agente ou outra sessão.
+
+Em termos simples: o README explica o projeto para pessoas; o AGENTS orienta agentes; o PROJECT_STATE guarda o andamento atual; e o HANDOFF serve para passagem de contexto.
 
 ## Privacidade e Segurança
 
