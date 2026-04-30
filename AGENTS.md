@@ -50,6 +50,30 @@ Ao finalizar uma alteração relevante:
 - Mantenha a documentação em português brasileiro claro, salvo pedido diferente do usuário.
 - Não coloque `AGENTS.md`, `docs/PROJECT_STATE.md` ou `docs/HANDOFF.md` no `.gitignore`.
 
+## Arquitetura Suficiente
+
+- Prefira a solução mais simples que resolva o problema real atual.
+- Preserve o funcionamento local, direto e sem dependências obrigatórias do projeto.
+- Evite criar camadas, interfaces, DTOs, mappers, factories, services, use cases ou patterns apenas por convenção.
+- Não introduza Clean Architecture completa, arquitetura hexagonal, CQRS, event sourcing, microservices, DDD tático completo, repository pattern formal ou dependency inversion sem justificativa explícita.
+- Separe responsabilidades de forma simples, sem multiplicar arquivos desnecessariamente.
+- Prefira encapsulamento simples antes de interfaces formais.
+- Não crie interface para algo que tem apenas uma implementação, salvo necessidade real documentada.
+- Não reorganize o projeto inteiro sem pedido explícito.
+- Comece simples e abstraia apenas quando houver dor concreta.
+- Considere que cada arquivo, camada e indireção aumenta custo de leitura, revisão e contexto para agentes de IA.
+- Mantenha lógica de negócio separada de detalhes de interface, DOM, HTTP, armazenamento local, arquivos ou integrações quando isso for aplicável, mas sem cerimônia arquitetural desnecessária.
+
+Antes de criar nova abstração, responda:
+
+1. Esta abstração resolve um problema real já existente?
+2. Há pelo menos dois usos concretos?
+3. Ela reduz duplicação ou só espalha código?
+4. Ela facilita teste e manutenção ou aumenta navegação?
+5. O custo em arquivos, imports e contexto compensa?
+
+Se a resposta for duvidosa, mantenha simples.
+
 ## Segurança e Privacidade
 
 - Não incluir chaves de API, tokens, senhas, credenciais, dados pessoais, dados sensíveis, documentos de alunos, documentos institucionais sensíveis, logs ou arquivos temporários na documentação ou no código.

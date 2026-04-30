@@ -41,6 +41,7 @@ Manter um leitor Markdown simples, offline por padrão, adequado para uso em sal
 - Usar MathJax somente como opção online manual.
 - Preservar fallback offline para fórmulas simples de Estatística.
 - Usar `localStorage` para persistir conteúdo e tema no navegador.
+- Priorizar arquitetura suficiente: funcionalidade, clareza, manutenção simples e baixo custo de contexto para agentes.
 - Separar contexto do projeto em quatro papéis:
   - `README.md`: guia humano.
   - `AGENTS.md`: regras permanentes de agentes.
@@ -59,6 +60,7 @@ Manter um leitor Markdown simples, offline por padrão, adequado para uso em sal
 - Não incluir credenciais, chaves, tokens, senhas, dados pessoais, documentos de alunos, documentos institucionais sensíveis, logs ou temporários.
 - Não introduzir dependências obrigatórias sem necessidade clara.
 - Não quebrar o uso offline nem a abertura direta de `index.html`.
+- Não aplicar camadas, patterns ou reorganizações amplas sem necessidade real documentada ou pedido explícito.
 - Não usar `docs/HANDOFF.md` como memória operacional principal.
 - Não alterar `AGENTS.md` automaticamente no futuro sem pedido explícito do usuário.
 

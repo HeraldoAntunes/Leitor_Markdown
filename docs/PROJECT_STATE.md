@@ -47,6 +47,7 @@ Não há `.gitignore` no estado atual do repositório.
 - Evitar dependências obrigatórias.
 - Tratar MathJax como recurso online opcional, com fallback offline.
 - Escapar HTML fornecido pelo usuário antes da renderização.
+- Adotar arquitetura suficiente: evitar overengineering, camadas e abstrações sem dor concreta ou justificativa explícita.
 - Usar `docs/PROJECT_STATE.md` como memória operacional contínua.
 - Usar `docs/HANDOFF.md` apenas para transferência de contexto.
 - Não alterar `AGENTS.md` no futuro sem pedido explícito do usuário.
@@ -66,6 +67,7 @@ Não há `.gitignore` no estado atual do repositório.
 - Busca por referências a `HANDOFF`, `PROJECT_STATE`, `AGENTS`, memória operacional e contexto.
 - Verificação de que não havia `AGENTS.md`, `docs/`, `docs/HANDOFF.md`, `docs/PROJECT_STATE.md`, `.gitignore` ou `HANDOFF.md` na raiz antes desta reorganização documental.
 - Verificação de `git status --short` antes das alterações: árvore limpa.
+- Revisão documental de `README.md`, `AGENTS.md`, `docs/PROJECT_STATE.md` e `docs/HANDOFF.md` antes de registrar a diretriz permanente contra overengineering.
 
 ## Testes Pendentes
 
