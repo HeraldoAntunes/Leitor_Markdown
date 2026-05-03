@@ -1,6 +1,6 @@
 # Estado Operacional do Projeto
 
-Última atualização: 2026-04-30.
+Última atualização: 2026-05-03.
 
 ## Objetivo do Projeto
 
@@ -15,12 +15,14 @@ O projeto é um leitor Markdown didático para uso local em sala de aula, estudo
 - MathJax online pode ser ativado manualmente e usa CDN apenas quando a opção é marcada.
 - Conteúdo e tema são salvos no `localStorage`.
 - Arquitetura de contexto para agentes foi padronizada com `AGENTS.md`, `docs/PROJECT_STATE.md` e `docs/HANDOFF.md`.
+- `CLAUDE.md` foi criado como adaptador curto para Claude Code / Claude Desktop, apontando para `AGENTS.md` como fonte principal de regras compartilhadas.
 
 ## Estrutura Real do Repositório
 
 ```text
 .
 ├── AGENTS.md
+├── CLAUDE.md
 ├── docs
 │   ├── HANDOFF.md
 │   └── PROJECT_STATE.md
@@ -36,6 +38,7 @@ Não há `.gitignore` no estado atual do repositório.
 - `index.html`: aplicação completa com HTML, CSS e JavaScript.
 - `README.md`: guia humano do projeto, uso, recursos, estrutura e arquitetura de contexto.
 - `AGENTS.md`: regras permanentes para agentes de IA.
+- `CLAUDE.md`: adaptador para Claude Code / Claude Desktop que referencia `AGENTS.md` sem duplicar suas regras.
 - `docs/PROJECT_STATE.md`: memória operacional contínua do projeto.
 - `docs/HANDOFF.md`: passagem de contexto para outro chat, agente ou sessão.
 - `LICENSE`: licença MIT.
@@ -50,6 +53,7 @@ Não há `.gitignore` no estado atual do repositório.
 - Adotar arquitetura suficiente: evitar overengineering, camadas e abstrações sem dor concreta ou justificativa explícita.
 - Usar `docs/PROJECT_STATE.md` como memória operacional contínua.
 - Usar `docs/HANDOFF.md` apenas para transferência de contexto.
+- Usar `CLAUDE.md` apenas como adaptador para Claude, mantendo `AGENTS.md` como fonte principal de regras compartilhadas.
 - Não alterar `AGENTS.md` no futuro sem pedido explícito do usuário.
 
 ## Limitações Conhecidas
@@ -68,6 +72,8 @@ Não há `.gitignore` no estado atual do repositório.
 - Verificação de que não havia `AGENTS.md`, `docs/`, `docs/HANDOFF.md`, `docs/PROJECT_STATE.md`, `.gitignore` ou `HANDOFF.md` na raiz antes desta reorganização documental.
 - Verificação de `git status --short` antes das alterações: árvore limpa.
 - Revisão documental de `README.md`, `AGENTS.md`, `docs/PROJECT_STATE.md` e `docs/HANDOFF.md` antes de registrar a diretriz permanente contra overengineering.
+- Verificação de `git status --short` antes da criação de `CLAUDE.md`: árvore limpa.
+- Criação documental de `CLAUDE.md` sem alterar arquivos de código.
 
 ## Testes Pendentes
 
