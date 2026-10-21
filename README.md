@@ -4,6 +4,8 @@ Um leitor pessoal de Markdown feito em **HTML, CSS e JavaScript puro**, pensado 
 
 O projeto roda localmente ao abrir o arquivo `index.html` no navegador. Não precisa de servidor, build, Node.js, framework ou instalação de dependências.
 
+**Usar no navegador:** https://heraldoantunes.github.io/Leitor_Markdown/
+
 ## Destaques
 
 - Aplicação 100% em um único arquivo HTML.
