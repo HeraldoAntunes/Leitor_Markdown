@@ -66,27 +66,16 @@ Para gerar PDF, use o botão **Imprimir / Salvar em PDF** e escolha a opção de
 
 ```text
 .
-├── AGENTS.md
-├── CLAUDE.md
-├── docs
-│   ├── HANDOFF.md
-│   └── PROJECT_STATE.md
 ├── index.html
 ├── LICENSE
 └── README.md
 ```
 
-## Arquitetura de Contexto
+## Limitações conhecidas
 
-Este repositório tem alguns arquivos para ajudar pessoas e agentes de IA a entenderem o projeto sem misturar funções:
-
-- `README.md`: guia humano do projeto. Explica o que é, como usar e onde ficam os arquivos.
-- `AGENTS.md`: regras permanentes para Codex, OpenCode e outros agentes de IA trabalharem no repositório.
-- `CLAUDE.md`: adaptador curto para Claude Code / Claude Desktop, apontando para `AGENTS.md` como fonte principal.
-- `docs/PROJECT_STATE.md`: estado operacional atual do projeto, como decisões em vigor, pendências, limitações e próximos passos.
-- `docs/HANDOFF.md`: resumo técnico para levar o contexto para outro chat, outro agente ou outra sessão.
-
-Em termos simples: o README explica o projeto para pessoas; o AGENTS orienta agentes; o CLAUDE adapta essa orientação para Claude; o PROJECT_STATE guarda o andamento atual; e o HANDOFF serve para passagem de contexto.
+- O interpretador de Markdown é próprio e didático; não cobre toda a especificação CommonMark.
+- A renderização offline de fórmulas cobre casos simples e recorrentes de Estatística, não LaTeX completo.
+- O MathJax online depende de internet e da disponibilidade da CDN.
 
 ## Privacidade e Segurança
 
@@ -94,6 +83,11 @@ O conteúdo digitado fica no próprio navegador. O aplicativo escapa HTML inseri
 
 O MathJax só é carregado pela internet se a opção online for ativada manualmente.
 
+## Como foi feito
+
+Desenvolvido por Heraldo Antunes com apoio de assistentes de programação de inteligência artificial, usados como
+ferramenta: a concepção, as decisões, a revisão e os testes são do autor, que responde pelo programa.
+
 ## Licença
 
-Este projeto está licenciado sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
+Distribuído sob a licença MIT. Veja o arquivo [LICENSE](LICENSE).
